@@ -1,0 +1,1 @@
+# alt-star-map-db
