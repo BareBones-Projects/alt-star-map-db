@@ -1,9 +1,0 @@
-/* CYCLUS WIRE B&W THEME */
-body{background:#000;color:#fff;font-family:'Courier New',monospace}
-canvas{background:#000}
-#ui{border-right:1px solid #fff;background:rgba(0,0,0,0.9)}
-button{background:#000;color:#fff;border:1px solid #fff}
-button:hover, button.active{background:#fff;color:#000}
-.stat{border:1px solid #222}
-.coords{border:1px solid #fff}
-.grid{background-image: linear-gradient(#111 1px, transparent 1px), linear-gradient(90deg, #111 1px, transparent 1px)}
