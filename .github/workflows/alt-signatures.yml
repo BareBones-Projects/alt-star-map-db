@@ -1,0 +1,69 @@
+name: ALT signed notices
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      holder:
+        description: Copyright holder
+        required: true
+        type: string
+      bare_id:
+        description: BareMark ID (letters, digits, underscores, hyphens)
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - run: python3 tools/alt_signatures.py check
+      - run: python3 -m unittest discover -s tests -p 'test_alt_signatures.py'
+  propose:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - name: Configure and apply notices
+        env:
+          ALT_HOLDER: ${{ inputs.holder }}
+          ALT_BARE_ID: ${{ inputs.bare_id }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          p = Path('.alt-signatures.json')
+          c = json.loads(p.read_text())
+          c.update(holder=os.environ['ALT_HOLDER'], bare_id=os.environ['ALT_BARE_ID'])
+          p.write_text(json.dumps(c, indent=2) + '\n')
+          PY
+          python3 tools/alt_signatures.py apply
+          python3 tools/alt_signatures.py check
+          python3 -m unittest discover -s tests -p 'test_alt_signatures.py'
+      - name: Open review PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if test -z "$(git status --porcelain)"; then exit 0; fi
+          branch="codex/alt-notices-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          git switch -c "$branch"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- .alt-signatures.json
+          python3 - <<'PY'
+          import json, subprocess
+          for name in json.load(open('.alt-signatures.json'))['files']:
+              subprocess.run(['git', 'add', '--', name], check=True)
+          PY
+          git commit -m 'Update ALT copyright notices and HEX configuration'
+          git push origin "$branch"
+          gh pr create --base "$BASE_BRANCH" --head "$branch" --title 'Update ALT signed notices' --body 'Updates configured first-party header/footer notices and HEX ID. BareMark certification remains pending; Shroud rendering is opt-in. Content signatures must be regenerated separately using the trusted signing key.'
