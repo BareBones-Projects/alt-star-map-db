@@ -2,7 +2,7 @@
 
 Cyclus Milky Way Map - 1:50,000 Scale - Black & White Wireframe Locked
 
-## Repo: BareBones-Projects/alt-star-map-db
+## BareBones-Projects/alt-star-map-db
 
 ### Current Build: BATCH 1-6 DONE - 45,000 bodies (15k stars / 15k planets / 15k moons) - 0-2500 ly
 
