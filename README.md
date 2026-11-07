@@ -1,3 +1,5 @@
+![alt-star-map-db social preview](assets/social-preview.svg)
+
 <!-- ALT-SIGNATURE-BEGIN:ALT_HEADER_SIGNED
 @ALT_HEADER_SIGNED
 ========================================================================
@@ -77,3 +79,7 @@ licensed under separate terms. See LICENSE or NOTICE files for details.
 ========================================================================
 @BAREMARK_VERIFIED_PENDING
 ALT-SIGNATURE-END:ALT_FOOT_SIGNED -->
+
+
+---
+BareBones Projects, Designed by: Justin Levesque-Welsch
