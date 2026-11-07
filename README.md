@@ -68,6 +68,13 @@ MIT - BareBones Projects
 ## // ALT Database integration
 
 The canonical hub is [BareBones-Projects/ALT-Database](https://github.com/BareBones-Projects/ALT-Database). This repository retains its existing map viewer and release assets. Read-only canonical star snapshots can be exported with `python scripts/fetch_alt_database.py --base http://127.0.0.1:8090`. See `integrations/README.md`. This adapter does not import 45,000 bodies automatically; CSV provenance/coordinate validation is required first.
+
+## Cyclus to ALT-Database: verified status (2026-11-07)
+
+The committed Cyclus sample contains 100 rows. The cumulative 45,000-body CSV and SQLite files described above are **planned/claimed release assets, not currently present in GitHub Releases**. Do not interpret the B1–B6 status table as proof that those files are published or loaded into ALT-Database.
+
+The [ALT-Database Cyclus audit](https://github.com/BareBones-Projects/ALT-Database/blob/alpha/docs/CYCLUS_INGEST_STATUS.md) and its proposed CI gate demonstrate **sample-to-draft SQL compatibility**, not live synchronization. There is no automatically scheduled production import. Source frames are light-years; they must not be substituted for the ALT fictional map's parsec positions. Future releases should include artifact SHA-256, row counts, epoch, coordinate frame, and a reviewed parent/identity map.
+
 <!-- ALT-SIGNATURE-BEGIN:ALT_FOOT_SIGNED
 @ALT_FOOT_SIGNED
 ========================================================================
