@@ -1,3 +1,5 @@
+<img width="1280" height="640" alt="alt-star-map-db-social-preview" src="https://github.com/user-attachments/assets/13a5a9d6-ab67-4132-9a9a-5958ac6b8e91" />
+
 # alt-star-map-db
 
 Cyclus Milky Way Map - 1:50,000 Scale - Black & White Wireframe Locked
