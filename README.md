@@ -7,6 +7,8 @@ licensed under separate terms. See LICENSE or NOTICE files for details.
 ========================================================================
 @BAREMARK_VERIFIED_PENDING
 ALT-SIGNATURE-END:ALT_HEADER_SIGNED -->
+![alt-star-map-db social preview](assets/social-preview.svg)
+
 <img width="1280" height="640" alt="alt-star-map-db-social-preview" src="https://github.com/user-attachments/assets/13a5a9d6-ab67-4132-9a9a-5958ac6b8e91" />
 
 # alt-star-map-db
@@ -68,6 +70,10 @@ MIT - BareBones Projects
 ## // ALT Database integration
 
 The canonical hub is [BareBones-Projects/ALT-Database](https://github.com/BareBones-Projects/ALT-Database). This repository retains its existing map viewer and release assets. Read-only canonical star snapshots can be exported with `python scripts/fetch_alt_database.py --base http://127.0.0.1:8090`. See `integrations/README.md`. This adapter does not import 45,000 bodies automatically; CSV provenance/coordinate validation is required first.
+
+
+---
+BareBones Projects, Designed by: Justin Levesque-Welsch
 <!-- ALT-SIGNATURE-BEGIN:ALT_FOOT_SIGNED
 @ALT_FOOT_SIGNED
 ========================================================================
