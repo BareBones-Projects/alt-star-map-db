@@ -1,0 +1,247 @@
+<!-- LOCKED CODE - CYCLUS WIRE B&W - DO NOT EDIT - cyclus_3D_locked_viewer_v4.html -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>CYCLUS MAP v4.0 - 10000x3 - LOCKED 3D</title>
+<style>
+
+/* CYCLUS LOCKED THEME - BLACK & WHITE WIREFRAME - DO NOT CHANGE */
+:root{--bg:#000;--fg:#fff;--dim:#222;--grid:#111}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:'Courier New',Courier,monospace;overflow:hidden}
+canvas{position:absolute;inset:0;background:var(--bg)}
+#ui{position:absolute;top:0;left:0;width:320px;height:100vh;border-right:1px solid var(--fg);background:rgba(0,0,0,0.95);padding:20px;overflow-y:auto;z-index:10}
+h1{font-size:18px;letter-spacing:4px;border-bottom:1px solid var(--fg);padding-bottom:12px;margin-bottom:20px}
+h2{font-size:11px;letter-spacing:2px;opacity:0.6;margin:16px 0 8px}
+.stat{display:flex;justify-content:space-between;border:1px solid var(--dim);padding:8px 10px;margin:4px 0;font-size:11px}
+button{background:var(--bg);color:var(--fg);border:1px solid var(--fg);padding:10px 14px;font-family:'Courier New';font-size:11px;letter-spacing:2px;cursor:pointer;width:100%;margin:4px 0}
+button:hover,button.active{background:var(--fg);color:var(--bg)}
+.coords{border:1px solid var(--fg);padding:12px;margin-top:20px;font-size:10px;line-height:1.6}
+#info{position:absolute;bottom:20px;right:20px;border:1px solid var(--fg);padding:14px;background:var(--bg);z-index:10;font-size:10px;width:280px}
+.grid{position:absolute;inset:0;z-index:1;pointer-events:none;background-image:linear-gradient(var(--grid) 1px, transparent 1px),linear-gradient(90deg,var(--grid) 1px, transparent 1px);background-size:40px 40px}
+
+
+body{margin:0;background:#040d1c;color:#c0e6ff;font-family:monospace;overflow:hidden}
+header{padding:10px 20px;background:#02131f;border-bottom:2px solid #00ffd1;display:flex;justify-content:space-between}
+.badge{border:1px solid #00ffd1;padding:2px 8px;color:#00ffd1}
+#main{display:flex;height:calc(100vh - 50px)}
+#tree{width:300px;background:#071a2e;overflow-y:auto;padding:10px;border-right:1px solid #0a2a4a}
+#canvas-wrap{flex:1;position:relative;background:radial-gradient(#0a1e3a,#020a14)}
+canvas{width:100%;height:100%;display:block;cursor:grab}
+#detail{width:320px;background:#071a2e;padding:12px;overflow-y:auto;border-left:1px solid #0a2a4a}
+.system{cursor:pointer;padding:4px 6px;margin:2px 0;background:#0d2440}
+.system:hover{background:#14365e}
+.star{color:#ffdd55} .planet{color:#00ffd1;margin-left:12px} .moon{color:#aaa;margin-left:24px;font-size:0.9em}
+.core{color:#ff3b30;font-weight:bold}
+.hz{color:#4cff8f}
+table{width:100%;font-size:11px;border-collapse:collapse;margin-top:10px}
+th,td{border:1px solid #1a3a5a;padding:3px;text-align:left}
+th{background:#0a2540}
+button{background:#0a2a4a;color:#00ffd1;border:1px solid #00ffd1;padding:4px 8px;cursor:pointer;margin:2px}
+button.active{background:#00ffd1;color:#000}
+input{width:100%;background:#02131f;border:1px solid #00ffd1;color:#fff;padding:6px;margin:6px 0}
+.bar{height:3px;background:#00ffd1;margin:4px 0}
+</style></head>
+<body>
+<header><div><b>CYCLUS MAP v4.0 // 10,000★ + 10,000🜨 + 10,000☾ = 30,000 BODIES // SCALE 1:50,000 // 3D LOCKED</b></div><div class="badge">LOCKED 3D</div></header>
+<div id="main">
+<div id="tree">
+<div><b>SYSTEMS - 10k BATCHES</b></div>
+<input id="search" placeholder="Search... (Sol, Trappist-1, GJ, HD)">
+<div style="margin:6px 0">
+<button id="btnGalaxy" class="active">Galaxy 3D</button>
+<button id="btnSystem">System</button>
+<button id="btnLOD">LOD: Stars</button>
+</div>
+<div style="font-size:10px;line-height:1.4">
+Scale: real=ly*9.46e15 m<br>scaled=real/50000<br>1 AU=2.99e6 m scaled<br>Batches: B1 0-150ly, B2 150-300ly, B3 300-600ly, B4 600-1000ly<br>Drag to rotate, wheel to zoom<br><span style="color:#ff3b30">Red=Trappist CORE</span> <span style="color:#4cff8f">Green=Habitable</span>
+</div>
+<div id="syslist" style="margin-top:8px"></div>
+</div>
+<div id="canvas-wrap"><canvas id="c"></canvas><div id="overlay" style="position:absolute;top:10px;left:10px;background:rgba(0,0,0,0.8);padding:8px;font-size:11px;line-height:1.5"></div>
+<div style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.7);padding:6px;font-size:10px">Controls: Drag=Rotate | Scroll=Zoom | Click body=Detail | Batches 1-4 merged</div>
+</div>
+<div id="detail"><div><b>DETAIL</b></div><div id="detailContent" style="margin-top:8px;font-size:12px;line-height:1.6">Loading 30k bodies...<div class="bar" id="loadbar"></div></div>
+<table id="datatable"><thead><tr><th>Name</th><th>Type</th><th>Dist</th></tr></thead><tbody></tbody></table></div>
+</div>
+<script>
+let stars=[], planets=[], moons=[], all=[];
+let focusSystem='Sol', mode='galaxy', lod='stars', selected=null;
+let rotX=0.3, rotY=0, zoom=0.8, isDrag=false, lastX=0,lastY=0;
+let dataLoaded=false;
+
+Promise.all([
+ fetch('/mnt/data/cyclus_CUMULATIVE_10000_each.csv').then(r=>r.text()).catch(()=>fetch('/mnt/data/cyclus_CUMULATIVE_7500_each.csv').then(r=>r.text())),
+]).then(([csv])=>{
+  parseCSV(csv);
+});
+
+function parseCSV(csv){
+ const lines=csv.trim().split('\n');
+ const h=lines[0].split(',');
+ for(let i=1;i<lines.length;i++){
+   if(i%5000==0) document.getElementById('loadbar').style.width=(i/lines.length*100)+'%';
+   const cols=lines[i].split(',');
+   let o={}; h.forEach((hh,idx)=>o[hh]=cols[idx]);
+   all.push(o);
+   if(o.type=='star') stars.push(o);
+   else if(o.type=='planet') planets.push(o);
+   else moons.push(o);
+ }
+ dataLoaded=true;
+ init();
+}
+
+const canvas=document.getElementById('c');
+const ctx=canvas.getContext('2d');
+function resize(){canvas.width=canvas.parentElement.clientWidth; canvas.height=canvas.parentElement.clientHeight;} resize(); window.addEventListener('resize',resize);
+
+canvas.addEventListener('mousedown',e=>{isDrag=true; lastX=e.clientX; lastY=e.clientY; canvas.style.cursor='grabbing';});
+window.addEventListener('mouseup',()=>{isDrag=false; canvas.style.cursor='grab';});
+window.addEventListener('mousemove',e=>{if(!isDrag) return; rotY+=(e.clientX-lastX)*0.01; rotX+=(e.clientY-lastY)*0.01; lastX=e.clientX; lastY=e.clientY;});
+canvas.addEventListener('wheel',e=>{e.preventDefault(); zoom*= e.deltaY>0?0.9:1.1; zoom=Math.max(0.1,Math.min(5,zoom));},{passive:false});
+
+function init(){ renderTree(); renderTable(); requestAnimationFrame(loop); }
+
+function renderTree(){
+ const cont=document.getElementById('syslist'); cont.innerHTML='';
+ const q=document.getElementById('search').value.toLowerCase();
+ // Show only systems with planets or real core, not all 10k stars
+ let showStars = stars.filter(s=>{
+   if(q) return s.name.toLowerCase().includes(q);
+   // show interesting only: has planets or is bright real
+   const hasP = planets.some(p=>p.parent==s.name);
+   const isReal = s.notes && (s.notes.includes('REAL')||s.notes.includes('CORE'));
+   const isClose = parseFloat(s.dist_ly)<200;
+   return hasP || isReal || (isClose && Math.random()<0.05);
+ });
+ showStars = showStars.slice(0,300);
+ showStars.forEach(star=>{
+   const div=document.createElement('div'); div.className='system star';
+   const pc = planets.filter(p=>p.parent==star.name).length;
+   div.textContent=(star.name=='Trappist-1'?'★ CORE '+star: '★ '+star)+' ('+pc+') '+parseFloat(star.dist_ly).toFixed(0)+'ly';
+   if(star.name=='Trappist-1') div.classList.add('core');
+   div.onclick=()=>{focusSystem=star.name; mode='system'; document.getElementById('btnSystem').classList.add('active'); document.getElementById('btnGalaxy').classList.remove('active'); showDetail(star);};
+   cont.appendChild(div);
+   if(focusSystem==star.name || (q && star.name.toLowerCase().includes(q))){
+     planets.filter(p=>p.parent==star.name).slice(0,15).forEach(pl=>{
+       const pdiv=document.createElement('div'); pdiv.className='planet';
+       pdiv.textContent='🜨 '+pl.name.split(' ').pop()+' '+parseFloat(pl.dist_au).toFixed(2)+'AU';
+       if((pl.notes||'').toLowerCase().includes('habitable')) pdiv.classList.add('hz');
+       if((pl.notes||'').includes('CYCLUS')) pdiv.classList.add('core');
+       pdiv.onclick=(e)=>{e.stopPropagation(); showDetail(pl);}; cont.appendChild(pdiv);
+       moons.filter(m=>m.parent==pl.name).slice(0,6).forEach(m=>{
+         const md=document.createElement('div'); md.className='moon'; md.textContent='☾ '+m.name.slice(0,20); md.onclick=(e)=>{e.stopPropagation(); showDetail(m);}; cont.appendChild(md);
+       });
+     });
+   }
+ });
+}
+
+document.getElementById('search').addEventListener('input',renderTree);
+document.getElementById('btnGalaxy').onclick=()=>{mode='galaxy'; document.getElementById('btnGalaxy').classList.add('active'); document.getElementById('btnSystem').classList.remove('active');};
+document.getElementById('btnSystem').onclick=()=>{mode='system'; document.getElementById('btnSystem').classList.add('active'); document.getElementById('btnGalaxy').classList.remove('active');};
+document.getElementById('btnLOD').onclick=function(){ lod = lod=='stars'?'all': lod=='all'?'planets':'stars'; this.textContent='LOD: '+lod; };
+
+function showDetail(d){
+ selected=d;
+ const el=document.getElementById('detailContent');
+ el.innerHTML=`<b style="color:#00ffd1;font-size:14px">${d.name}</b><br>Type: ${d.type} ${d.body_class||''}<br>Parent: ${d.parent||'none'}<br>Dist: ${parseFloat(d.dist_ly||0).toFixed(3)} ly (${parseFloat(d.dist_ly||0).toFixed(0)} ly shell)<br>AU: ${parseFloat(d.dist_au||0).toFixed(5)}<br>Local XYZ: ${parseFloat(d.x_ly_local).toFixed(2)}, ${parseFloat(d.y_ly_local).toFixed(2)}, ${parseFloat(d.z_ly_local).toFixed(2)} ly<br>Galactic XYZ: ${parseFloat(d.x_ly_galactic).toFixed(1)}, ${parseFloat(d.y_ly_galactic).toFixed(1)}, ${parseFloat(d.z_ly_galactic).toFixed(1)} ly<br>Scaled 1:50k: ${(parseFloat(d.x_m_scaled)/1000).toExponential(2)} km<br>Notes: <span style="color:${(d.notes||'').includes('CYCLUS')?'#ff3b30':'#4cff8f'}">${d.notes||''}</span><br>${d.diam_km?'Diam: '+d.diam_km+' km':''}<br><br><b>XYZ for Cyclus map:</b><br>X=${d.x_ly_local}<br>Y=${d.y_ly_local}<br>Z=${d.z_ly_local}`;
+}
+
+function renderTable(){
+ const tbody=document.querySelector('#datatable tbody'); tbody.innerHTML='';
+ all.filter(d=>!d.name.startsWith('GJ')||parseFloat(d.dist_ly)<200).slice(0,80).forEach(d=>{
+   const tr=document.createElement('tr'); tr.innerHTML=`<td>${d.name.slice(0,18)}</td><td>${d.type[0]}</td><td>${parseFloat(d.dist_ly).toFixed(0)}</td>`; tr.onclick=()=>showDetail(d); tr.style.cursor='pointer'; tbody.appendChild(tr);
+ });
+}
+
+function rotatePoint(x,y,z){
+ // rotate Y then X
+ let cosY=Math.cos(rotY), sinY=Math.sin(rotY);
+ let x1 = x*cosY - y*sinY;
+ let y1 = x*sinY + y*cosY;
+ let z1 = z;
+ let cosX=Math.cos(rotX), sinX=Math.sin(rotX);
+ let y2 = y1*cosX - z1*sinX;
+ let z2 = y1*sinX + z1*cosX;
+ return [x1,y2,z2];
+}
+
+function loop(){ requestAnimationFrame(loop); draw(); }
+
+function draw(){
+ if(!dataLoaded) return;
+ ctx.fillStyle='#020a14'; ctx.fillRect(0,0,canvas.width,canvas.height);
+ // grid
+ ctx.strokeStyle='#0a2a4a'; ctx.lineWidth=0.5;
+ for(let i=-400;i<=400;i+=80){ ctx.beginPath(); ctx.moveTo(i*zoom+canvas.width/2,0); ctx.lineTo(i*zoom+canvas.width/2,canvas.height); ctx.stroke(); }
+ const cx=canvas.width/2, cy=canvas.height/2;
+ const scale = 0.6*zoom;
+
+ if(mode=='galaxy'){
+   // draw shells
+   [150,300,600,1000].forEach(r=>{
+     ctx.strokeStyle='rgba(0,255,209,'+(0.08+r/10000)+')'; ctx.beginPath(); ctx.arc(cx,cy,r*scale*0.5,0,Math.PI*2); ctx.stroke();
+     ctx.fillStyle='#00ffd133'; ctx.font='10px monospace'; ctx.fillText(r+'ly',cx+r*scale*0.5+4,cy);
+   });
+
+   let src = stars;
+   if(lod=='all') src=all;
+   else if(lod=='planets') src=planets;
+   else src=stars;
+
+   // depth sort
+   let pts=[];
+   src.forEach(d=>{
+     const x=parseFloat(d.x_ly_local), y=parseFloat(d.y_ly_local), z=parseFloat(d.z_ly_local);
+     const [rx,ry,rz]=rotatePoint(x,y,z);
+     const sx=cx+rx*scale*0.5;
+     const sy=cy+ry*scale*0.3+rz*scale*0.2;
+     pts.push({d,sx,sy,rz,dist:Math.sqrt(x*x+y*y+z*z)});
+   });
+   pts.sort((a,b)=>a.rz-b.rz);
+
+   pts.forEach(p=>{
+     const d=p.d; const sx=p.sx, sy=p.sy;
+     if(sx<-50||sx>canvas.width+50||sy<-50||sy>canvas.height+50) return;
+     let col='#ffdd55', sz=2;
+     if(d.type=='star'){
+       if(d.name=='Sol'){col='#ffff00'; sz=8;}
+       else if(d.name=='Trappist-1'){col='#ff3b30'; sz=6;}
+       else if((d.notes||'').includes('REAL')){col='#ffdd55'; sz=3;}
+       else {col='rgba(255,221,85,0.6)'; sz=1.5;}
+       const hasP = planets.some(pl=>pl.parent==d.name);
+       if(hasP && d.name!='Sol'){col='#ff8c00'; sz=2.5;}
+     } else if(d.type=='planet'){
+       col=(d.notes||'').includes('habitable')?'#4cff8f': (d.notes||'').includes('CYCLUS')?'#ff3b30':'#00ffd1'; sz=2;
+     } else {col='#888'; sz=1;}
+     if(selected && selected.name==d.name){ ctx.strokeStyle='#00ffd1'; ctx.lineWidth=2; ctx.strokeRect(sx-5,sy-5,10,10); sz+=1;}
+     ctx.fillStyle=col; ctx.beginPath(); ctx.arc(sx,sy,sz,0,Math.PI*2); ctx.fill();
+     if((d.name=='Sol'||d.name=='Trappist-1'|| (selected && selected.name==d.name)) && lod!='moons'){
+       ctx.fillStyle='#ffffffaa'; ctx.font='11px monospace'; ctx.fillText(d.name,sx+7,sy-4);
+     }
+   });
+   document.getElementById('overlay').innerHTML=`GALAXY 3D - ${all.length} bodies - ${lod}<br>RotX ${rotX.toFixed(2)} RotY ${rotY.toFixed(2)} Zoom ${zoom.toFixed(2)}<br>Focus: ${focusSystem} - Drag to rotate, wheel zoom<br>LOD: Stars only for perf, switch to All`;
+ } else {
+   const star = stars.find(s=>s.name==focusSystem);
+   if(!star){ document.getElementById('overlay').innerHTML='Select system in left panel'; return;}
+   ctx.fillStyle='#ffff00'; ctx.beginPath(); ctx.arc(cx,cy,12,0,Math.PI*2); ctx.fill();
+   ctx.fillStyle='#fff'; ctx.font='12px monospace'; ctx.fillText(star.name+' ('+star.dist_ly+' ly)',cx+14,cy);
+   const pls = planets.filter(p=>p.parent==focusSystem);
+   pls.forEach((pl,i)=>{
+     const au=parseFloat(pl.dist_au);
+     const r=25+Math.log10(au+1)*70;
+     ctx.strokeStyle='#0a3a5a'; ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke();
+     const ang=rotY + i*0.8;
+     const px=cx+r*Math.cos(ang), py=cy+r*Math.sin(ang)*0.5;
+     ctx.fillStyle=(pl.notes||'').includes('CYCLUS')?'#ff3b30': (pl.notes||'').includes('habitable')?'#4cff8f':'#00ffd1';
+     ctx.beginPath(); ctx.arc(px,py, pl.body_class=='gas_giant'?6:4,0,Math.PI*2); ctx.fill();
+     ctx.fillStyle='#aaa'; ctx.font='10px monospace'; ctx.fillText(pl.name.split(' ').pop()+' '+au.toFixed(2)+'AU',px+6,py);
+     moons.filter(m=>m.parent==pl.name).forEach((mo,j)=>{
+       const mr=10+j*5; const mx=px+mr*Math.cos(rotY*2+j), my=py+mr*Math.sin(rotY*2+j)*0.5;
+       ctx.fillStyle='#666'; ctx.beginPath(); ctx.arc(mx,my,1.8,0,Math.PI*2); ctx.fill();
+     });
+   });
+   document.getElementById('overlay').innerHTML=`SYSTEM VIEW: ${focusSystem} - ${pls.length} planets - Drag to orbit<br>Star XYZ: ${parseFloat(star.x_ly_local).toFixed(1)}, ${parseFloat(star.y_ly_local).toFixed(1)}, ${parseFloat(star.z_ly_local).toFixed(1)} ly`;
+ }
+}
+</script></body></html>

@@ -1,0 +1,98 @@
+<!-- LOCKED CODE - CYCLUS WIRE B&W - DO NOT EDIT - cyclus_BATCH1_viewer.html -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>CYCLUS BATCH1 2500x3 - LOCKED</title>
+<style>
+
+/* CYCLUS LOCKED THEME - BLACK & WHITE WIREFRAME - DO NOT CHANGE */
+:root{--bg:#000;--fg:#fff;--dim:#222;--grid:#111}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:'Courier New',Courier,monospace;overflow:hidden}
+canvas{position:absolute;inset:0;background:var(--bg)}
+#ui{position:absolute;top:0;left:0;width:320px;height:100vh;border-right:1px solid var(--fg);background:rgba(0,0,0,0.95);padding:20px;overflow-y:auto;z-index:10}
+h1{font-size:18px;letter-spacing:4px;border-bottom:1px solid var(--fg);padding-bottom:12px;margin-bottom:20px}
+h2{font-size:11px;letter-spacing:2px;opacity:0.6;margin:16px 0 8px}
+.stat{display:flex;justify-content:space-between;border:1px solid var(--dim);padding:8px 10px;margin:4px 0;font-size:11px}
+button{background:var(--bg);color:var(--fg);border:1px solid var(--fg);padding:10px 14px;font-family:'Courier New';font-size:11px;letter-spacing:2px;cursor:pointer;width:100%;margin:4px 0}
+button:hover,button.active{background:var(--fg);color:var(--bg)}
+.coords{border:1px solid var(--fg);padding:12px;margin-top:20px;font-size:10px;line-height:1.6}
+#info{position:absolute;bottom:20px;right:20px;border:1px solid var(--fg);padding:14px;background:var(--bg);z-index:10;font-size:10px;width:280px}
+.grid{position:absolute;inset:0;z-index:1;pointer-events:none;background-image:linear-gradient(var(--grid) 1px, transparent 1px),linear-gradient(90deg,var(--grid) 1px, transparent 1px);background-size:40px 40px}
+
+
+body{margin:0;background:#020a14;color:#9de2ff;font-family:monospace;overflow:hidden}
+header{padding:12px 20px;background:#021a2e;border-bottom:2px solid #00ffd1;display:flex;justify-content:space-between;align-items:center}
+.badge{background:#00ffd1;color:#000;padding:3px 10px;font-weight:bold}
+#main{display:flex;height:calc(100vh - 52px)}
+#left{width:320px;background:#061a30;overflow-y:auto;padding:10px;border-right:1px solid #0a2a4a}
+#center{flex:1;position:relative;background:radial-gradient(#0a2244,#020a14)}
+canvas{width:100%;height:100%;display:block}
+#right{width:320px;background:#061a30;padding:10px;overflow-y:auto;border-left:1px solid #0a2a4a}
+.item{padding:3px 6px;cursor:pointer;margin:1px 0;font-size:11px}
+.item:hover{background:#14365e}
+.star{color:#ffdd55} .planet{color:#00ffd1} .moon{color:#aaa}
+button{background:#0a2a4a;color:#00ffd1;border:1px solid #00ffd1;padding:5px 10px;margin:2px;cursor:pointer}
+button.active{background:#00ffd1;color:#000}
+.progress{height:4px;background:#00ffd1;margin-top:6px}
+</style></head>
+<body>
+<header><div><b>CYCLUS SECTOR BATCH 1 // 2500 STARS + 2500 PLANETS + 2500 MOONS = 7500 BODIES // SCALE 1:50,000 // LOCKED</b></div><div class="badge">BATCH 1 LOCKED</div></header>
+<div id="main">
+<div id="left">
+<input id="search" placeholder="Search name..." style="width:100%;background:#02131f;border:1px solid #00ffd1;color:#fff;padding:6px">
+<div style="margin:8px 0"><button id="bAll" class="active">All</button><button id="bStars">Stars</button><button id="bPlanets">Planets</button><button id="bMoons">Moons</button><button id="bHab">Habitable</button></div>
+<div style="font-size:10px;line-height:1.4">Real core: Sol, Trappist-1 CORE, Tau Ceti, etc.<br>Stars 2500 within 150 ly sphere<br>Planets avg 1 per star<br>Moons avg 1 per planet<br>Coords: local Sun 0,0,0 + galactic GC 0,0,0<br>Scale: 1 ly = 9.46e15 m /50000 = 1.89e11 m</div>
+<div id="list" style="margin-top:10px;max-height:60vh;overflow-y:auto"></div>
+</div>
+<div id="center"><canvas id="c"></canvas><div id="overlay" style="position:absolute;top:10px;left:10px;background:rgba(0,0,0,0.8);padding:8px;font-size:11px;line-height:1.4"></div></div>
+<div id="right"><div id="detail">Select body...</div>
+<div style="margin-top:12px;font-size:11px"><b>NEXT BATCH READY</b><br>Say "Batch 2" to generate next 2500 each (5000 total each type).<br><br><b>Downloads:</b><br>• Combined CSV<br>• Stars / Planets / Moons separate<br>All XYZ local + galactic + scaled 1:50k</div>
+</div>
+</div>
+<script>
+let stars=[], planets=[], moons=[], all=[];
+let filter='all'; let rot=0; let selected=null;
+Promise.all([
+ fetch('/mnt/data/cyclus_BATCH1_2500_stars.csv').then(r=>r.text()),
+ fetch('/mnt/data/cyclus_BATCH1_2500_planets.csv').then(r=>r.text()),
+ fetch('/mnt/data/cyclus_BATCH1_2500_moons.csv').then(r=>r.text())
+]).then(([s,p,m])=>{
+ parse(s,'star'); parse(p,'planet'); parse(m,'moon'); init();
+});
+function parse(csv,type){
+ const lines=csv.trim().split('\n'); const h=lines[0].split(',');
+ for(let i=1;i<lines.length;i++){ const c=lines[i].split(','); let o={}; h.forEach((hh,idx)=>o[hh]=c[idx]); o._type=type; all.push(o); if(type=='star') stars.push(o); else if(type=='planet') planets.push(o); else moons.push(o); }
+}
+const canvas=document.getElementById('c'); const ctx=canvas.getContext('2d');
+function resize(){canvas.width=canvas.parentElement.clientWidth; canvas.height=canvas.parentElement.clientHeight;} resize(); window.addEventListener('resize',resize);
+function init(){ renderList(); requestAnimationFrame(loop); }
+function renderList(){
+ const cont=document.getElementById('list'); cont.innerHTML=''; const q=document.getElementById('search').value.toLowerCase();
+ let src=all; if(filter=='stars') src=stars; if(filter=='planets') src=planets; if(filter=='moons') src=moons; if(filter=='hab') src=all.filter(d=> (d.notes||'').toLowerCase().includes('habitable') || (d.notes||'').includes('CYCLUS'));
+ let count=0;
+ src.forEach(d=>{ if(q && !d.name.toLowerCase().includes(q)) return; if(count>400) return; const div=document.createElement('div'); div.className='item '+d.type; div.textContent=d.type[0].toUpperCase()+': '+d.name+' ('+parseFloat(d.dist_ly||0).toFixed(1)+'ly)'; div.onclick=()=>showDetail(d); cont.appendChild(div); count++; });
+ document.getElementById('overlay').innerHTML=`${filter} - ${src.length} bodies - showing ${Math.min(count,400)} - rot ${rot.toFixed(2)}<br>Search: ${q||'none'}`;
+}
+function showDetail(d){ selected=d; document.getElementById('detail').innerHTML=`<b style="color:#00ffd1;font-size:13px">${d.name}</b><br>Type: ${d.type} ${d.body_class||''}<br>Parent: ${d.parent||'none'}<br>Dist: ${parseFloat(d.dist_ly).toFixed(3)} ly<br>AU: ${parseFloat(d.dist_au||0).toFixed(5)}<br>Local XYZ: ${parseFloat(d.x_ly_local).toFixed(3)}, ${parseFloat(d.y_ly_local).toFixed(3)}, ${parseFloat(d.z_ly_local).toFixed(3)}<br>Galactic: ${parseFloat(d.x_ly_galactic).toFixed(1)}, ${parseFloat(d.y_ly_galactic).toFixed(1)}, ${parseFloat(d.z_ly_galactic).toFixed(1)}<br>Scaled 1:50k: ${(parseFloat(d.x_m_scaled)/1000).toExponential(2)} km<br>Notes: ${d.notes||''}<br>Diam: ${d.diam_km||''} km`; }
+document.getElementById('search').addEventListener('input',renderList);
+['bAll','bStars','bPlanets','bMoons','bHab'].forEach(id=>{document.getElementById(id).onclick=()=>{document.querySelectorAll('button').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active'); filter=id.replace('b','').toLowerCase(); if(filter=='all') filter='all'; renderList();}});
+function loop(){rot+=0.003; draw(); requestAnimationFrame(loop);}
+function draw(){
+ ctx.fillStyle='#020a14'; ctx.fillRect(0,0,canvas.width,canvas.height);
+ const cx=canvas.width/2, cy=canvas.height/2;
+ // bubble
+ ctx.strokeStyle='#00ffd111'; ctx.beginPath(); ctx.arc(cx,cy,Math.min(cx,cy)*0.95,0,Math.PI*2); ctx.stroke();
+ let src = all; if(filter=='stars') src=stars; if(filter=='planets') src=planets; if(filter=='moons') src=moons; if(filter=='hab') src=all.filter(d=> (d.notes||'').toLowerCase().includes('habitable'));
+ src.forEach(d=>{
+   const x=parseFloat(d.x_ly_local), y=parseFloat(d.y_ly_local), z=parseFloat(d.z_ly_local);
+   const sx=cx + (x*Math.cos(rot) - y*Math.sin(rot))* (filter=='moons'?12: (filter=='planets'?8:3));
+   const sy=cy + (x*Math.sin(rot)+ y*Math.cos(rot))*0.3 + z*(filter=='moons'?12:3);
+   if(sx<0||sx>canvas.width||sy<0||sy>canvas.height) return;
+   let col='#ffffff33', sz=1;
+   if(d.type=='star'){ col=d.name=='Trappist-1'?'#ff3b30':d.name=='Sol'?'#ffff00':'#ffdd55'; sz= d.name=='Sol'||d.name=='Trappist-1'?6: d.body_class=='G2V'?3:2; }
+   else if(d.type=='planet'){ col=d.notes&&d.notes.includes('habitable')?'#4cff8f':d.notes&&d.notes.includes('CYCLUS')?'#ff3b30':'#00ffd1'; sz=3; }
+   else { col='#aaaaaa'; sz=1.5; }
+   if(selected && selected.name==d.name){ col='#00ffd1'; sz+=2; ctx.strokeStyle='#00ffd1'; ctx.strokeRect(sx-4,sy-4,8,8); }
+   ctx.fillStyle=col; ctx.beginPath(); ctx.arc(sx,sy,sz,0,Math.PI*2); ctx.fill();
+ });
+}
+</script></body></html>

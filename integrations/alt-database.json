@@ -1,0 +1,15 @@
+{
+  "contract": "ALT-DB-CONSUMER-v1",
+  "canonical_repository": "BareBones-Projects/ALT-Database",
+  "base_url_env": "ALT_DATABASE_URL",
+  "default_local_base_url": "http://127.0.0.1:8090",
+  "read_endpoint": "/api/v1/entities?kind=star",
+  "authorization": "public-read-only",
+  "admin_access": false,
+  "production_requirements": [
+    "https",
+    "public-data-only",
+    "schema-validation",
+    "offline-fallback-is-not-canonical"
+  ]
+}
