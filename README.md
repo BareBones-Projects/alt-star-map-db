@@ -7,6 +7,8 @@ licensed under separate terms. See LICENSE or NOTICE files for details.
 ========================================================================
 @BAREMARK_VERIFIED_PENDING
 ALT-SIGNATURE-END:ALT_HEADER_SIGNED -->
+![alt-star-map-db social preview](assets/social-preview.svg)
+
 <img width="1280" height="640" alt="alt-star-map-db-social-preview" src="https://github.com/user-attachments/assets/13a5a9d6-ab67-4132-9a9a-5958ac6b8e91" />
 
 # alt-star-map-db
